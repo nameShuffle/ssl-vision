@@ -59,6 +59,10 @@ CaptureThread::CaptureThread(int cam_id)
   captureFiles = new CaptureFromFile(fromfile, camId);
   captureGenerator = new CaptureGenerator(generator);
 
+  captureModule->addItem("Webots");
+  webots = new VarList("Webots");
+  settings->addChild(webots);
+
 #ifdef DC1394
   captureModule->addItem("DC 1394");
   dc1394 = new VarList("DC1394");
@@ -139,6 +143,7 @@ CaptureThread::~CaptureThread()
   delete captureFiles;
   delete captureGenerator;
   delete counter;
+  delete webots;
 
 #ifdef DC1394
   delete captureDC1394;

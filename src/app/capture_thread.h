@@ -85,6 +85,7 @@ protected:
   VarList * settings;
   VarList * dc1394 = nullptr;
   VarList * v4l = nullptr;
+  VarList * webots = nullptr;
   VarList * bluefox2 = nullptr;
   VarList * bluefox3 = nullptr;
   VarList * flycap = nullptr;

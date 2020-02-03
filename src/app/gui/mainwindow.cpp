@@ -24,14 +24,14 @@
 MainWindow::MainWindow(bool start_capture, bool enforce_affinity, int num_cameras)
 {
 
-  affinity=0;
+  affinity = 0;
   if (enforce_affinity) affinity=new AffinityManager();
   //opt=new GetOpt();
-  settings=0;
+  settings = 0;
   setupUi((QMainWindow *)this);
 
-  tree_view=new VarTreeView();
-  tmodel=new VarTreeModel();
+  tree_view = new VarTreeView();
+  tmodel = new VarTreeModel();
 
   splitter = new QSplitter(Qt::Horizontal,this);
   cam_tabs = new QTabWidget();
