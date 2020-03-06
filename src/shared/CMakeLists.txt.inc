@@ -16,6 +16,7 @@ set (SHARED_SRCS
 	${shared_dir}/capture/capturefromfile.cpp
 	${shared_dir}/capture/capture_generator.cpp
 	${shared_dir}/capture/captureinterface.cpp
+	${shared_dir}/capture/capture_webots.cpp
 
 	${shared_dir}/cmpattern/cmpattern_pattern.cpp
 	${shared_dir}/cmpattern/cmpattern_team.cpp
@@ -102,7 +103,8 @@ set (SHARED_SRCS
 #only ones that need to be moc'ed
 set (SHARED_HEADERS
 	${shared_dir}/capture/capturefromfile.h
-  ${shared_dir}/capture/capture_generator.h
+  	${shared_dir}/capture/capture_generator.h
+	${shared_dir}/capture/capture_webots.h
 
 	${shared_dir}/cmpattern/cmpattern_team.h
 	${shared_dir}/cmpattern/cmpattern_teamdetector.h

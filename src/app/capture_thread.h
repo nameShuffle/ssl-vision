@@ -33,6 +33,7 @@
 #include "visionstack.h"
 #include "capturestats.h"
 #include "affinity_manager.h"
+#include "capture_webots.h"
 
 #ifdef MVIMPACT2
 #include "capture_bluefox2.h"
@@ -78,6 +79,7 @@ protected:
   CaptureInterface * captureBasler = nullptr;
   CaptureInterface * captureSpinnaker = nullptr;
   CaptureInterface * captureSplitter = nullptr;
+  CaptureInterface * captureWebots = nullptr;
   AffinityManager * affinity;
   FrameBuffer * rb;
   bool _kill;

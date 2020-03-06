@@ -1,0 +1,8 @@
+/home/varvara/work/ssl-vision/CMakeFiles/edit_cache.dir
+/home/varvara/work/ssl-vision/CMakeFiles/sslvision.dir
+/home/varvara/work/ssl-vision/CMakeFiles/rebuild_cache.dir
+/home/varvara/work/ssl-vision/CMakeFiles/GenerateProto.dir
+/home/varvara/work/ssl-vision/CMakeFiles/vision.dir
+/home/varvara/work/ssl-vision/CMakeFiles/client.dir
+/home/varvara/work/ssl-vision/CMakeFiles/logClient.dir
+/home/varvara/work/ssl-vision/CMakeFiles/graphicalClient.dir

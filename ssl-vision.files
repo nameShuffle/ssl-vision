@@ -104,6 +104,8 @@ src/shared/capture/capture_spinnaker.cpp
 src/shared/capture/capture_spinnaker.h
 src/shared/capture/capture_splitter.cpp
 src/shared/capture/capture_splitter.h
+src/shared/capture/capture_webots.cpp
+src/shared/capture/capture_webots.h
 src/shared/capture/capturedc1394v2.cpp
 src/shared/capture/capturedc1394v2.h
 src/shared/capture/capturefromfile.cpp
@@ -112,6 +114,7 @@ src/shared/capture/captureinterface.cpp
 src/shared/capture/captureinterface.h
 src/shared/capture/capturev4l.cpp
 src/shared/capture/capturev4l.h
+src/shared/capture/client_webots.h
 src/shared/cmpattern/cmpattern_pattern.cpp
 src/shared/cmpattern/cmpattern_pattern.h
 src/shared/cmpattern/cmpattern_team.cpp

@@ -62,6 +62,7 @@ CaptureThread::CaptureThread(int cam_id)
   captureModule->addItem("Webots");
   webots = new VarList("Webots");
   settings->addChild(webots);
+  captureWebots = new CaptureWebots(webots, camId);
 
 #ifdef DC1394
   captureModule->addItem("DC 1394");
@@ -120,17 +121,17 @@ CaptureThread::CaptureThread(int cam_id)
 #endif
 
   selectCaptureMethod();
-  _kill =false;
-  rb=0;
+  _kill = false;
+  rb = 0;
 }
 
 void CaptureThread::setAffinityManager(AffinityManager * _affinity) {
-  affinity=_affinity;
+  affinity = _affinity;
 }
 
 void CaptureThread::setStack(VisionStack * _stack) {
   stack_mutex.lock();
-  stack=_stack;
+  stack = _stack;
   stack_mutex.unlock();
 }
 
@@ -143,7 +144,7 @@ CaptureThread::~CaptureThread()
   delete captureFiles;
   delete captureGenerator;
   delete counter;
-  delete webots;
+  delete captureWebots;
 
 #ifdef DC1394
   delete captureDC1394;
@@ -179,7 +180,7 @@ CaptureThread::~CaptureThread()
 }
 
 void CaptureThread::setFrameBuffer(FrameBuffer * _rb) {
-  rb=_rb;
+  rb = _rb;
 }
 
 FrameBuffer * CaptureThread::getFrameBuffer() const {
@@ -192,12 +193,15 @@ VisionStack * CaptureThread::getStack() const {
 
 void CaptureThread::selectCaptureMethod() {
   capture_mutex.lock();
-  CaptureInterface * old_capture=capture;
-  CaptureInterface * new_capture=nullptr;
-  if(captureModule->getString() == "Read from files") {
-    new_capture = captureFiles;
-  } else if(captureModule->getString() == "Generator") {
-    new_capture = captureGenerator;
+  CaptureInterface * old_capture = capture;
+  CaptureInterface * new_capture = nullptr;
+
+  if (captureModule->getString() == "Read from files") {
+      new_capture = captureFiles;
+  } else if (captureModule->getString() == "Generator") {
+      new_capture = captureGenerator;
+  } else if (captureModule->getString() == "Webots") {
+      new_capture = captureWebots;
   }
 #ifdef DC1394
   else if(captureModule->getString() == "DC 1394") {
@@ -240,17 +244,19 @@ void CaptureThread::selectCaptureMethod() {
   }
 #endif
 
-  if (old_capture!=nullptr && new_capture!=old_capture && old_capture->isCapturing()) {
+  if (old_capture != nullptr && new_capture != old_capture && old_capture->isCapturing()) {
     capture_mutex.unlock();
     stop();
     capture_mutex.lock();
   }
-  capture=new_capture;
+
+  capture = new_capture;
   capture_mutex.unlock();
 }
 
 void CaptureThread::kill() {
- _kill=true;
+  _kill = true;
+
   while(isRunning()) {
     usleep(100);
   }
@@ -258,27 +264,33 @@ void CaptureThread::kill() {
 
 bool CaptureThread::init() {
   capture_mutex.lock();
+
   bool res = (capture != nullptr) && capture->startCapture();
-  if (res==true) {
+  if (res == true) {
     c_start->addFlags( VARTYPE_FLAG_READONLY );
     c_reset->addFlags( VARTYPE_FLAG_READONLY );
     c_refresh->removeFlags( VARTYPE_FLAG_READONLY );
     c_stop->removeFlags( VARTYPE_FLAG_READONLY );
   }
+
   capture_mutex.unlock();
+
   return res;
 }
 
 bool CaptureThread::stop() {
   capture_mutex.lock();
   bool res = (capture != nullptr) && capture->stopCapture();
-  if (res==true) {
+
+  if (res == true) {
     c_stop->addFlags( VARTYPE_FLAG_READONLY );
     c_refresh->addFlags( VARTYPE_FLAG_READONLY );
     c_start->removeFlags( VARTYPE_FLAG_READONLY );
     c_reset->removeFlags( VARTYPE_FLAG_READONLY );
   }
+
   capture_mutex.unlock();
+
   return res;
 }
 
@@ -286,14 +298,17 @@ bool CaptureThread::reset() {
   capture_mutex.lock();
   bool res = (capture != nullptr) && capture->resetBus();
   capture_mutex.unlock();
+
   return res;
 }
 
 void CaptureThread::refresh() {
   capture_mutex.lock();
+
   if(capture != nullptr) {
     capture->readAllParameterValues();
   }
+
   capture_mutex.unlock();
 }
 
@@ -302,13 +317,13 @@ void CaptureThread::run() {
     CaptureStats * stats;
     bool changed;
 
-    if (affinity!=0) {
+    if (affinity != 0) {
       affinity->demandCore(camId);
     }
 
-    while(true) {
-      if (rb!=0) {
-        int idx=rb->curWrite();
+    while (true) {
+      if (rb != 0) {
+        int idx = rb->curWrite();
         FrameData * d=rb->getPointer(idx);
         if ((stats=(CaptureStats *)d->map.get("capture_stats")) == 0) {
           stats=(CaptureStats *)d->map.insert("capture_stats",new CaptureStats());
