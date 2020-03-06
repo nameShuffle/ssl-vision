@@ -68,13 +68,13 @@ class CaptureWebots : public QObject, public CaptureInterface
 
         //processing variables:
         VarStringEnum * v_colorout;
-        VarInt * v_raw_width;
-        VarInt * v_raw_height;
 
         //capture variables:
-        VarString * v_cap_dir;
-        VarList * capture_settings;
-        VarList * conversion_settings;
+        VarString* webots_address;
+        VarInt* webots_port;
+
+        VarList* capture_settings;
+        VarList* conversion_settings;
 
         std::list<std::string> imgs_to_load;
         std::vector<RawImage> images;
@@ -93,7 +93,7 @@ class CaptureWebots : public QObject, public CaptureInterface
 
         virtual bool startCapture();
         virtual bool stopCapture();
-        virtual bool isCapturing() { return is_capturing; };
+        virtual bool isCapturing() { return is_capturing; }
 
         virtual RawImage getFrame();
         virtual void releaseFrame();

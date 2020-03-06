@@ -68,7 +68,7 @@ void Client::slotReadyRead()
         QImage image;
         in >> image;
 
-        // мб поменять ширину и высоту местами, пока не очень поняла
+        // верно ли ширина и высота
         cv::Mat srcImg(image.width(), image.height(), CV_8UC3, (uchar*)image.bits(), image.bytesPerLine());
         //cv::Mat result; // deep copy just in case (my lack of knowledge with open cv)
         //cvtColor(tmp, result, CV_BGR2RGB);
@@ -83,7 +83,6 @@ void Client::slotReadyRead()
         // convert to default ssl-vision format (RGB8) (функция opencv)
         cvtColor(srcImg, dstImg, cv::COLOR_BGR2RGB);
 
-        //там лежит указатель на область памяти с преобразованной датой
         rowImages->push_back(img);
 
         nextBlockSize = 0;
@@ -120,7 +119,6 @@ void Client::stopListening()
 }
 
 
-
 CaptureWebots::CaptureWebots(VarList * _settings, int default_camera_id,
                              QObject * parent) : QObject(parent), CaptureInterface(_settings)
 {
@@ -138,13 +136,11 @@ CaptureWebots::CaptureWebots(VarList * _settings, int default_camera_id,
     v_colorout->addItem(Colors::colorFormatToString(COLOR_YUV422_UYVY));
     v_colorout->addItem(Colors::colorFormatToString(COLOR_RAW8));
 
-    conversion_settings->addChild(v_raw_width = new VarInt("raw width", 2448));
-    conversion_settings->addChild(v_raw_height = new VarInt("raw height", 2048));
-
     //=======================CAPTURE SETTINGS==========================
     ostringstream convert;
     convert << "test-data/cam" << default_camera_id;
-    capture_settings->addChild(v_cap_dir = new VarString("directory", convert.str()));
+    capture_settings->addChild(webots_address = new VarString("address", "localhost"));
+    capture_settings->addChild(webots_port = new VarInt("port", 2323));
 
     // Valid file endings
     validImageFileEndings.push_back("PNG");
@@ -179,7 +175,7 @@ bool CaptureWebots::startCapture()
 {
     mutex.lock();
 
-    client = new Client ("localhost", 2323, &images, &mutex, &is_capturing);
+    client = new Client (QString::fromStdString(webots_address->getString()), webots_port->getInt(), &images, &mutex, &is_capturing);
 
     mutex.unlock();
 
