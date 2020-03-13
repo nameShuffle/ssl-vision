@@ -68,8 +68,10 @@ void Client::slotReadyRead()
         QImage image;
         in >> image;
 
+        image = image.convertToFormat(QImage::Format_RGB888);
+
         // верно ли ширина и высота
-        cv::Mat srcImg(image.width(), image.height(), CV_8UC3, (uchar*)image.bits(), image.bytesPerLine());
+        cv::Mat srcImg(image.height(), image.width(), CV_8UC3, (uchar*)image.bits(), image.bytesPerLine());
         //cv::Mat result; // deep copy just in case (my lack of knowledge with open cv)
         //cvtColor(tmp, result, CV_BGR2RGB);
 
@@ -81,7 +83,7 @@ void Client::slotReadyRead()
         cv::Mat dstImg(img.getHeight(), img.getWidth(), CV_8UC3, img.getData());
 
         // convert to default ssl-vision format (RGB8) (функция opencv)
-        cvtColor(srcImg, dstImg, cv::COLOR_BGR2RGB);
+        cvtColor(srcImg, dstImg, CV_BGR2RGB);//cv::COLOR_BGR2RGB);
 
         rowImages->push_back(img);
 
@@ -221,7 +223,7 @@ bool CaptureWebots::isImageFileName(const std::string& fileName)
 
 bool CaptureWebots::copyAndConvertFrame(const RawImage & src, RawImage & target)
 {
-  mutex.lock();
+  //mutex.lock();
 
   ColorFormat output_fmt = Colors::stringToColorFormat(v_colorout->getSelection().c_str());
   ColorFormat src_fmt = src.getColorFormat();
@@ -270,13 +272,13 @@ bool CaptureWebots::copyAndConvertFrame(const RawImage & src, RawImage & target)
     mutex.unlock();
     return false;
   }
-  mutex.unlock();
+  //mutex.unlock();
   return true;
 }
 
 RawImage CaptureWebots::getFrame()
 {
-  mutex.lock();
+  //mutex.lock();
 
   RawImage result;
   if (images.empty())
@@ -296,7 +298,7 @@ RawImage CaptureWebots::getFrame()
     result.setTime((double) tv.tv_sec + tv.tv_usec*(1.0E-6));
   }
 
-  mutex.unlock();
+  //mutex.unlock();
   return result;
 }
 
