@@ -80,10 +80,6 @@ class CaptureWebots : public QObject, public CaptureInterface
         std::vector<RawImage> images;
         unsigned int currentImageIndex;
 
-        bool isImageFileName(const std::string& fileName);
-        std::string getFileExtension(const std::string &fileName);
-        std::vector<std::string> validImageFileEndings;
-
         Client* client = nullptr;
 
     public:
