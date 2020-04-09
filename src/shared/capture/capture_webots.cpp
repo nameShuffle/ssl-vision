@@ -65,53 +65,27 @@ void Client::slotReadyRead()
             break;
         }
 
+        // read in RGBA format
         QImage image;
         in >> image;
 
-        image = image.convertToFormat(QImage::Format_RGB888);
-        //image.save("alpha.png");
-        //QImage::Format format = image.format();
-
-        cv::Mat srcImg = cv::Mat(image.height(), image.width(), CV_8UC3,
+        cv::Mat srcImg = cv::Mat(image.height(), image.width(), CV_8UC4,
                            const_cast<uchar*>(image.bits()),
                            image.bytesPerLine()).clone();
 
-        //в мате меняется синий и красный
-
-        //vector<int> compression_params;
-        //compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
-        //compression_params.push_back(9);
-        //cv::imwrite("alpha.png", srcImg, compression_params);
-
-        // верно ли ширина и высота
-        //cv::Mat srcImg(image2.height(), image2.width(), CV_8UC3, (uchar*)image.bits(), image.bytesPerLine());
-        //cv::Mat result; // deep copy just in case (my lack of knowledge with open cv)
-        //cvtColor(tmp, result, CV_BGR2RGB);
-
-        //cv::Mat srcImg(image.rows(), image.cols(), CV_8UC3, image.scanline());
-
-        //cv::Mat result = cv::Mat(mat.rows, mat.cols, CV_8UC3);
-        //int from_to[] = { 0,0,  1,1,  2,2 };
-        //cv::mixChannels( &mat, 1, &result, 1, from_to, 3 );
-
         RawImage img;
         img.allocate(ColorFormat::COLOR_RGB8, srcImg.cols, srcImg.rows);
-        //img.setData(srcImg.data);
 
         cv::Mat dstImg(img.getHeight(), img.getWidth(), CV_8UC3, img.getData());
 
-        // convert to default ssl-vision format (RGB8) (функция opencv)
-        cvtColor(srcImg, dstImg, CV_RGB2BGR);//cv::COLOR_BGR2RGB);
-
-        //cv::imwrite("alpha.png", dstImg, compression_params);
+        // convert to default ssl-vision format (RGB8)
+        cvtColor(srcImg, dstImg, CV_RGBA2BGR);
 
         rowImages->push_back(img);
-
         nextBlockSize = 0;
     }
 
     *isCapturing = true;
-
     captureMutex->unlock();
 }
 
