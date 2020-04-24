@@ -33,7 +33,7 @@
 #include <QString>
 
 
-Client::Client(const QString& strHost, int port, std::vector<RawImage>* images, QMutex* mutex, bool* capturingStatus) : nextBlockSize(0)
+Client::Client(const QString& strHost, int port, std::queue<RawImage>* images, QMutex* mutex, bool* capturingStatus) : nextBlockSize(0)
 {
     socket = new QTcpSocket(this);
     captureMutex = mutex;
@@ -55,13 +55,24 @@ void Client::slotReadyRead()
 
     QDataStream in(socket);
     in.setVersion(QDataStream::Qt_4_2);
+    in.setByteOrder(QDataStream::LittleEndian);
+
     for (;;) {
         if (!nextBlockSize) {
             if (socket->bytesAvailable() < sizeof(quint64)) {
                 break;
             }
+
             in >> nextBlockSize;
         }
+
+        QString k{""};
+        k = QString::number(nextBlockSize);
+        fprintf(stderr, k.toStdString().c_str());
+
+        qint64 count = socket->bytesAvailable();
+        k = QString::number(count);
+        fprintf(stderr, k.toStdString().c_str());
 
         if (socket->bytesAvailable() < nextBlockSize) {
             break;
@@ -83,7 +94,7 @@ void Client::slotReadyRead()
         // convert to default ssl-vision format (RGB8)
         cvtColor(srcImg, dstImg, CV_RGBA2BGR);
 
-        rowImages->push_back(img);
+        rowImages->push(img);
         nextBlockSize = 0;
     }
 
@@ -104,13 +115,13 @@ void Client::slotError(QAbstractSocket::SocketError err)
                      QString(socket->errorString())
                     );
 
-    std::cout << strError.toStdString();
+    fprintf(stderr, strError.toStdString().c_str());
 }
 
 
 void Client::slotConnected()
 {
-    std::cout << "Received the connected() signal";
+    fprintf(stderr, "Received the connected() signal");
 }
 
 
@@ -123,7 +134,6 @@ void Client::stopListening()
 CaptureWebots::CaptureWebots(VarList * _settings, int default_camera_id,
                              QObject * parent) : QObject(parent), CaptureInterface(_settings)
 {
-    currentImageIndex = 0;
     is_capturing = false;
 
     settings->addChild(conversion_settings = new VarList("Conversion Settings"));
@@ -140,8 +150,8 @@ CaptureWebots::CaptureWebots(VarList * _settings, int default_camera_id,
     //=======================CAPTURE SETTINGS==========================
     ostringstream convert;
     convert << "test-data/cam" << default_camera_id;
-    capture_settings->addChild(webots_address = new VarString("address", "localhost"));
-    capture_settings->addChild(webots_port = new VarInt("port", 2323));
+    capture_settings->addChild(webots_address = new VarString("address", "192.168.0.16"));
+    capture_settings->addChild(webots_port = new VarInt("port", 7777));
 }
 
 CaptureWebots::~CaptureWebots()
@@ -245,8 +255,9 @@ RawImage CaptureWebots::getFrame()
     RawImage result;
     if (images.empty())
     {
-        fprintf (stderr, "CaptureWebots Error, no images available");
+        fprintf (stderr, "CaptureWebots Error, no images available yet");
         is_capturing = false;
+
         result.setData(nullptr);
         result.setWidth(640);
         result.setHeight(480);
@@ -254,8 +265,8 @@ RawImage CaptureWebots::getFrame()
     }
     else
     {
-        result = images[currentImageIndex];
-        currentImageIndex = static_cast<unsigned int>((currentImageIndex + 1) % images.size());
+        result = images.front();
+        images.pop();
 
         timeval tv{};
         gettimeofday(&tv, nullptr);

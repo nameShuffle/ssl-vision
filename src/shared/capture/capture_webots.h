@@ -40,13 +40,13 @@ Q_OBJECT
 
 private:
     QTcpSocket* socket;
-    std::vector<RawImage>* rowImages;
+    std::queue<RawImage>* rowImages;
     QMutex *captureMutex;
     bool *isCapturing;
     quint64     nextBlockSize;
 
 public:
-    Client(const QString& strHost, int port, std::vector<RawImage>* images, QMutex* mutex, bool* isCapturing) ;
+    Client(const QString& strHost, int port, std::queue<RawImage>* images, QMutex* mutex, bool* isCapturing) ;
     void stopListening();
 
 private slots:
@@ -76,9 +76,7 @@ class CaptureWebots : public QObject, public CaptureInterface
         VarList* capture_settings;
         VarList* conversion_settings;
 
-        std::list<std::string> imgs_to_load;
-        std::vector<RawImage> images;
-        unsigned int currentImageIndex;
+        std::queue<RawImage> images;
 
         Client* client = nullptr;
 
