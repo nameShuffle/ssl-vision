@@ -43,7 +43,9 @@ private:
     std::queue<RawImage>* rowImages;
     QMutex *captureMutex;
     bool *isCapturing;
-    quint64     nextBlockSize;
+    uint       nextImageSize;
+    uint       nextImageColumns;
+    uint       nextImageRows;
 
 public:
     Client(const QString& strHost, int port, std::queue<RawImage>* images, QMutex* mutex, bool* isCapturing) ;

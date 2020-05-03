@@ -33,14 +33,19 @@
 #include <QString>
 
 
-Client::Client(const QString& strHost, int port, std::queue<RawImage>* images, QMutex* mutex, bool* capturingStatus) : nextBlockSize(0)
+Client::Client(const QString& strHost, int port, std::queue<RawImage>* images, QMutex* mutex, bool* capturingStatus)
 {
     socket = new QTcpSocket(this);
     captureMutex = mutex;
     rowImages = images;
     isCapturing = capturingStatus;
 
+    nextImageColumns = 0;
+    nextImageRows = 0;
+    nextImageSize = 0;
+
     socket->connectToHost(strHost, port);
+
     connect(socket, SIGNAL(connected()), SLOT(slotConnected()));
     connect(socket, SIGNAL(readyRead()), SLOT(slotReadyRead()));
     connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
@@ -58,33 +63,33 @@ void Client::slotReadyRead()
     in.setByteOrder(QDataStream::LittleEndian);
 
     for (;;) {
-        if (!nextBlockSize) {
-            if (socket->bytesAvailable() < sizeof(quint64)) {
+        if (!nextImageSize) {
+            if (socket->bytesAvailable() < sizeof(uint)) {
                 break;
             }
 
-            in >> nextBlockSize;
+            if (!nextImageColumns)
+            {
+                in >> nextImageColumns;
+                break;
+            }
+            else if (!nextImageRows)
+            {
+                in >> nextImageRows;
+                nextImageSize = nextImageColumns * nextImageRows * 4;
+            }
         }
 
-        QString k{""};
-        k = QString::number(nextBlockSize);
-        fprintf(stderr, k.toStdString().c_str());
-
-        qint64 count = socket->bytesAvailable();
-        k = QString::number(count);
-        fprintf(stderr, k.toStdString().c_str());
-
-        if (socket->bytesAvailable() < nextBlockSize) {
+        if (socket->bytesAvailable() < nextImageSize) {
             break;
         }
 
-        // read in RGBA format
-        QImage image;
-        in >> image;
+        char* imageBytes = new char [nextImageSize];
+        in.readRawData(imageBytes, nextImageSize);
 
-        cv::Mat srcImg = cv::Mat(image.height(), image.width(), CV_8UC4,
-                           const_cast<uchar*>(image.bits()),
-                           image.bytesPerLine()).clone();
+        cv::Mat srcImg = cv::Mat(nextImageRows, nextImageColumns, CV_8UC4,
+                           const_cast<uchar*>((uchar*)imageBytes), nextImageColumns * 4);
+
 
         RawImage img;
         img.allocate(ColorFormat::COLOR_RGB8, srcImg.cols, srcImg.rows);
@@ -92,10 +97,13 @@ void Client::slotReadyRead()
         cv::Mat dstImg(img.getHeight(), img.getWidth(), CV_8UC3, img.getData());
 
         // convert to default ssl-vision format (RGB8)
-        cvtColor(srcImg, dstImg, CV_RGBA2BGR);
+        cvtColor(srcImg, dstImg, CV_BGRA2RGB);
 
         rowImages->push(img);
-        nextBlockSize = 0;
+
+        nextImageSize = 0;
+        nextImageRows = 0;
+        nextImageColumns = 0;
     }
 
     *isCapturing = true;
