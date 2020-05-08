@@ -85,7 +85,7 @@
 			ZJUNlict
 		</Var>
 		<Var name="Robot Height (mm)" type="double" minval="" maxval="">
-			148.725000
+			148.000000
 		</Var>
 	</Var>
 	<Var name="AIS" type="list">
